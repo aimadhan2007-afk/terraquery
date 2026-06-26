@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630">
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#081320"/>
+      <stop offset="100%" stop-color="#0d2740"/>
+    </linearGradient>
+    <radialGradient id="r" cx="0.2" cy="0.15" r="0.9">
+      <stop offset="0%" stop-color="#61e3c0" stop-opacity="0.35"/>
+      <stop offset="100%" stop-color="#61e3c0" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <rect width="1200" height="630" fill="url(#g)"/>
+  <rect width="1200" height="630" fill="url(#r)"/>
+  <text x="88" y="194" fill="#61e3c0" font-size="30" font-family="Inter, Arial, sans-serif" letter-spacing="6">ASTRAFLOW AI</text>
+  <text x="88" y="318" fill="#f3f8ff" font-size="72" font-family="Inter, Arial, sans-serif" font-weight="700">AI-powered data automation</text>
+  <text x="88" y="396" fill="#9cb4cf" font-size="30" font-family="Inter, Arial, sans-serif">Premium workflows, intelligent enrichment, and enterprise observability.</text>
+  <rect x="88" y="460" width="270" height="80" rx="40" fill="#61e3c0"/>
+  <text x="138" y="512" fill="#051912" font-size="28" font-family="Inter, Arial, sans-serif" font-weight="700">Launch workflows</text>
+</svg>
