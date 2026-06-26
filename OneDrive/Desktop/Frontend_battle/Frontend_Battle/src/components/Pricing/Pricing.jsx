@@ -29,8 +29,9 @@ export default function Pricing() {
 
     const onChange = (event) => {
       const target = event.target;
-      if (!(target instanceof HTMLElement)) return;
+      if (!(target instanceof HTMLInputElement || target instanceof HTMLSelectElement)) return;
 
+      // Correctly read the checked radio button value
       if (target.matches('[data-billing]')) {
         stateRef.current.billingCycle = target.value;
       }
@@ -42,6 +43,7 @@ export default function Pricing() {
       syncPricing();
     };
 
+    
       syncPricing();
     const controls = controlsRef.current;
     controls?.addEventListener('change', onChange);
