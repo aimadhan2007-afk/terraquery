@@ -7,7 +7,7 @@ export default function Pricing() {
   const controlsRef = useRef(null);
   const priceRefs = useRef({});
   const cycleRefs = useRef({});
-  const stateRef = useRef({ billingCycle: 'monthly', currency: 'INR' });
+  const stateRef = useRef({ billingCycle: 'monthly',  currency: 'INR' });
 
     const syncPricing = () => {
       const { billingCycle, currency } = stateRef.current;
