@@ -11,6 +11,39 @@ DEFAULT_COLLECTION_NAME = "imagery"
 DEFAULT_EMBEDDING_MODEL = "all-MiniLM-L6-v2"
 
 
+def classify_image(image_path: str | Path, model_path: str = "models/eurosat_resnet18.pt") -> tuple[str, float]:
+	"""Run the trained ResNet-18 classifier on a single image, returning (class_name, confidence)."""
+	import torch
+	from PIL import Image
+	from torchvision import transforms
+	from torchvision.models import resnet18
+
+	class_names = [
+		"AnnualCrop", "Forest", "HerbaceousVegetation", "Highway", "Industrial",
+		"Pasture", "PermanentCrop", "Residential", "River", "SeaLake",
+	]
+
+	model = resnet18(weights=None)
+	model.fc = torch.nn.Linear(model.fc.in_features, len(class_names))
+	model.load_state_dict(torch.load(model_path, map_location="cpu"))
+	model.eval()
+
+	transform = transforms.Compose([
+		transforms.Resize((64, 64)),
+		transforms.ToTensor(),
+	])
+
+	image = Image.open(image_path).convert("RGB")
+	tensor = transform(image).unsqueeze(0)
+
+	with torch.no_grad():
+		logits = model(tensor)
+		probs = torch.softmax(logits, dim=1)
+		confidence, predicted_idx = torch.max(probs, dim=1)
+
+	return class_names[predicted_idx.item()], confidence.item()
+
+
 @dataclass(frozen=True)
 class ImageMetadata:
 	"""Structured facts extracted from a satellite image."""

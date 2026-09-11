@@ -20,19 +20,10 @@ class TrainingConfig:
 	image_size: int = 64
 
 
-def load_eurosat_dataset(data_root: str, split: str = "train"):
-	"""Load EuroSAT from torchgeo.
-
-	Importing torchgeo lazily keeps this module importable in lightweight test
-	environments while still exposing the requested training workflow.
-	"""
-
-	try:
-		from torchgeo.datasets import EuroSAT
-	except ImportError as exc:  # pragma: no cover - depends on optional package
-		raise ImportError("torchgeo is required to load EuroSAT") from exc
-
-	return EuroSAT(root=data_root, split=split, download=False)
+def load_eurosat_dataset(data_root: str, transform=None):
+	"""Load EuroSAT from a local ImageFolder-structured directory."""
+	from torchvision.datasets import ImageFolder
+	return ImageFolder(root=data_root, transform=transform)
 
 
 def build_resnet18(num_classes: int):
@@ -91,20 +82,33 @@ def train_classifier(config: TrainingConfig) -> str:
 	except ImportError as exc:  # pragma: no cover - depends on optional package
 		raise ImportError("torch is required for training") from exc
 
-	dataset = load_eurosat_dataset(config.data_root, split="train")
+	transform = create_transforms(config.image_size)
+	dataset = load_eurosat_dataset(config.data_root, transform=transform)
 	model = build_resnet18(config.num_classes)
 	criterion = nn.CrossEntropyLoss()
 	optimizer = torch.optim.Adam(model.parameters(), lr=config.learning_rate)
 	loader = DataLoader(dataset, batch_size=config.batch_size, shuffle=True)
 
+	try:
+		from tqdm import tqdm
+	except ImportError:
+		tqdm = None
+
 	model.train()
-	for _ in range(config.epochs):
-		for images, labels in loader:
+	for epoch in range(1, config.epochs + 1):
+		running_loss = 0.0
+		batch_iter = tqdm(loader, desc=f"Epoch {epoch}/{config.epochs}", unit="batch") if tqdm else loader
+		for images, labels in batch_iter:
 			optimizer.zero_grad()
 			logits = model(images)
 			loss = criterion(logits, labels)
 			loss.backward()
 			optimizer.step()
+			running_loss += loss.item()
+			if tqdm and hasattr(batch_iter, "set_postfix"):
+				batch_iter.set_postfix(loss=f"{loss.item():.4f}")
+		avg_loss = running_loss / len(loader)
+		print(f"Epoch {epoch}/{config.epochs}  avg_loss={avg_loss:.4f}")
 
 	return save_model(model, config.output_path)
 

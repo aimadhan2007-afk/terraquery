@@ -8,11 +8,16 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from pathlib import Path
-import re
 from typing import Iterable, Iterator
 
 import fitz
 
+import re
+
+
+def clean_text(text: str) -> str:
+    # Strip non-ASCII characters (removes garbled Devanagari artifacts)
+    return re.sub(r'[^\x00-\x7F]+', ' ', text)
 
 DEFAULT_CHUNK_TOKENS = 400
 DEFAULT_OVERLAP_RATIO = 0.15

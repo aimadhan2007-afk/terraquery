@@ -1,4 +1,4 @@
-"""Claude API client wrapper for grounded answer generation."""
+"""Gemini API client wrapper for grounded answer generation."""
 
 from __future__ import annotations
 
@@ -7,40 +7,44 @@ import os
 from dotenv import load_dotenv
 
 
-DEFAULT_MODEL = "claude-sonnet-4-6"
+DEFAULT_MODEL = "gemini-3.6-flash"
 
 
-def load_anthropic_client():
-	"""Create an Anthropic client after reading credentials from .env."""
+def load_gemini_client():
+    """Create a Gemini client after reading credentials from .env."""
 
-	load_dotenv()
-	api_key = os.getenv("ANTHROPIC_API_KEY")
-	if not api_key:
-		raise ValueError("ANTHROPIC_API_KEY is missing from the environment")
+    load_dotenv()
+    api_key = os.getenv("GOOGLE_API_KEY")
+    if not api_key:
+        raise ValueError("GOOGLE_API_KEY is missing from the environment")
 
-	try:
-		from anthropic import Anthropic
-	except ImportError as exc:  # pragma: no cover - depends on optional package
-		raise ImportError("anthropic is required to call Claude") from exc
+    try:
+        from google import genai
+    except ImportError as exc:  # pragma: no cover - depends on optional package
+        raise ImportError("google-genai is required to call the LLM") from exc
 
-	return Anthropic(api_key=api_key)
+    return genai.Client(api_key=api_key)
 
 
 def call_claude(
-	system_prompt: str,
-	user_prompt: str,
-	model: str = DEFAULT_MODEL,
-	max_tokens: int = 1024,
-	temperature: float = 0.2,
+    system_prompt: str,
+    user_prompt: str,
+    model: str = DEFAULT_MODEL,
+    max_tokens: int = 1024,
+    temperature: float = 0.2,
 ) -> str:
-	"""Call Claude and return the assistant text response."""
+    """Call the LLM and return the assistant text response.
 
-	client = load_anthropic_client()
-	response = client.messages.create(
-		model=model,
-		max_tokens=max_tokens,
-		temperature=temperature,
-		system=system_prompt,
-		messages=[{"role": "user", "content": user_prompt}],
-	)
-	return "".join(block.text for block in response.content if hasattr(block, "text"))
+    Function name kept as call_claude for compatibility with fusion.py.
+    """
+
+    client = load_gemini_client()
+    response = client.models.generate_content(
+        model=model,
+        contents=f"{system_prompt}\n\n{user_prompt}",
+        config={
+            "max_output_tokens": max_tokens,
+            "temperature": temperature,
+        },
+    )
+    return response.text

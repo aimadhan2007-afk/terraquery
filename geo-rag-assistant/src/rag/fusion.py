@@ -61,3 +61,36 @@ def fuse_query_context(
 
 def build_user_prompt(query: str, context_block: str) -> str:
 	return f"Question: {query}\n\nContext:\n{context_block}\n\nAnswer with cited claims only."
+def answer_query(
+    query: str,
+    persist_directory: str = "vectorstore",
+    top_k_documents: int = 4,
+    top_k_images: int = 4,
+) -> dict:
+    """Full pipeline: retrieve evidence, call the LLM, and return a grounded answer with sources."""
+
+    from .llm_client import call_claude
+
+    grounded = fuse_query_context(
+        query,
+        persist_directory=persist_directory,
+        top_k_documents=top_k_documents,
+        top_k_images=top_k_images,
+    )
+
+    if not grounded.sources:
+        return {
+            "answer": "No relevant information was found in the documents or imagery to answer this question.",
+            "sources": [],
+        }
+
+    user_prompt = build_user_prompt(query, grounded.context_block)
+    answer_text = call_claude(grounded.system_prompt, user_prompt)
+
+    return {
+        "answer": answer_text,
+        "sources": [
+            {"id": r.source_id, "collection": r.collection, "score": r.score}
+            for r in grounded.sources
+        ],
+    }
